@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter un produit{% endblock %}
+
+{% block content %}
+
+  <h2>Ajouter  un produit</h2>
+
+    <!-- Bouton vocal -->
+    <button type="button" id="voice-btn">🎤 Remplir par la voix</button>
+
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <label for="id_code_produit">Code produit:</label>
+            {{ form.code_produit }}
+        </p>
+        <p>
+            <label for="id_nom_produit">Nom produit:</label>
+            {{ form.nom_produit }}
+        </p>
+        <p>
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+        </p>
+        <p>
+            <label for="id_categorie">Catégorie:</label>
+            {{ form.categorie }}
+        </p>
+        <p>
+            <label for="id_prix_unitaire">Prix unitaire:</label>
+            {{ form.prix_unitaire }}
+        </p>
+        <p>
+            <label for="id_statut">Statut:</label>
+            {{ form.statut }}
+        </p>
+
+        <button type="submit">Enregistrer</button>
+    </form>
+
+    <a href="{% url 'liste_produits' %}">Retour à la liste des produits</a>
+
+    <script>
+        const startBtn = document.getElementById('voice-btn'); 
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert("La reconnaissance vocale n'est pas supportée par ce navigateur.");
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+
+            let activeField = null;
+
+            // Quand on clique dans un champ, on le définit comme actif
+            document.querySelectorAll('input, textarea, select').forEach(field => {
+                field.addEventListener('focus', () => {
+                    activeField = field;
+                });
+            });
+
+            startBtn.addEventListener('click', () => {
+                if (!activeField) {
+                    alert("Clique d'abord sur un champ pour y écrire.");
+                    return;
+                }
+                recognition.start();
+            });
+
+            recognition.addEventListener('result', (event) => {
+                const text = event.results[0][0].transcript;
+                if (activeField) {
+                    activeField.value = text; // Remplit le champ actif
+                }
+            });
+
+            recognition.addEventListener('error', (event) => {
+                console.error('Erreur :', event.error);
+            });
+        }
+    </script>
+{% endblock %}

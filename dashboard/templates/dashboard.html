@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="dashboard-container" style="max-width: 900px; margin: auto; padding: 20px;">
+  <h1>Tableau de bord</h1>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 30px;">
+    <div style="flex: 1 1 200px; background: #28a745; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+      <h2>{{ nb_produits }}</h2>
+      <p>Produits</p>
+    </div>
+    <div style="flex: 1 1 200px; background: #007bff; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+      <h2>{{ nb_employes }}</h2>
+      <p>Employés</p>
+    </div>
+    <div style="flex: 1 1 200px; background: #ffc107; color: black; padding: 20px; border-radius: 8px; text-align: center;">
+      <h2>{{ total_ordres }}</h2>
+      <p>Ordres de production totaux</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 40px;">Statut des ordres de production</h3>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+    <div style="flex: 1 1 200px; background: #17a2b8; color: white; padding: 15px; border-radius: 6px; text-align: center;">
+      <h4>{{ ordres_en_cours }}</h4>
+      <p>En cours</p>
+    </div>
+    <div style="flex: 1 1 200px; background: #28a745; color: white; padding: 15px; border-radius: 6px; text-align: center;">
+      <h4>{{ ordres_termines }}</h4>
+      <p>Terminés</p>
+    </div>
+    <div style="flex: 1 1 200px; background: #dc3545; color: white; padding: 15px; border-radius: 6px; text-align: center;">
+      <h4>{{ ordres_annules }}</h4>
+      <p>Annulés</p>
+    </div>
+  </div>
+</div>
+<a href="{% url 'prediction_retard' %}" class="btn btn-warning">
+  Voir ordres à risque de retard
+</a>
+<h2>Ordres de Production</h2>
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Produit</th>
+      <th>Date</th>
+      <th>Quantité commandée</th>
+      <th>Statut</th>
+      <th>Terminée / En cours</th> 
+    </tr>
+  </thead>
+  <tbody>
+    {% for ordre in ordres %}
+    <tr>
+      <td>{{ ordre.id }}</td>
+      <td>{{ ordre.produit.nom_produit }}</td>
+      <td>{{ ordre.date_debut }}</td>
+      <td>{{ ordre.quantite_commandee }}</td>
+      <td>
+        <span class="badge 
+          {% if ordre.statut == 'en_cours' %} bg-warning
+          {% elif ordre.statut == 'termine' %} bg-success
+          {% elif ordre.statut == 'annule' %} bg-danger
+          {% else %} bg-secondary
+          {% endif %}
+        ">
+          {{ ordre.get_statut_display }}
+        </span>
+      </td>
+      <td style="min-width: 200px;">
+        <div class="progress position-relative" style="height: 25px;">
+          {% if ordre.pourcentage_termine == 0 %}
+            <div class="progress-bar bg-secondary" style="width: 15%; min-width: 80px;"></div>
+          {% else %}
+            <div class="progress-bar {{ ordre.progress_class }} animate__animated animate__slideInLeft"
+                 style="width: {{ ordre.pourcentage_termine }}%;"></div>
+          {% endif %}
+          <div class="position-absolute w-100 text-center" style="line-height: 25px;">
+            <small class="{% if ordre.pourcentage_termine == 0 %}text-muted{% else %}text-white{% endif %} fw-bold">
+              {{ ordre.quantite_terminee }} / {{ ordre.quantite_commandee }} ({{ ordre.pourcentage_termine }}%)
+            </small>
+          </div>
+        </div>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">Aucun ordre de production.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="row">
+  <div class="col-md-6">
+    <h3>Répartition des ordres de production</h3>
+    <canvas id="statutsChart"></canvas>
+  </div>
+
+  <div class="col-md-6">
+    <h3>Production mensuelle (quantités terminées)</h3>
+    <canvas id="productionChart"></canvas>
+  </div>
+</div>
+
+<h2>Tableau des Opérations de Production</h2>
+<table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>Code Ordre</th>
+      <th>Type d'opération</th>
+      <th>Quantité demandée</th>
+      <th>Quantité produite</th>
+      <th>% Réalisé</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for op in stats %}
+    <tr>
+      <td>{{ op.code_ordre }}</td>
+      <td>{{ op.type_operation }}</td>
+      <td>{{ op.quantite_demandee }}</td>
+      <td>{{ op.quantite_produite }}</td>
+      <td>{{ op.pourcentage }}%</td>
+   
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">Aucune opération trouvée.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Graphique 1
+    const statutsData = JSON.parse('{{ statuts_data|escapejs }}');
+    new Chart(document.getElementById('statutsChart'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(statutsData),
+            datasets: [{
+                data: Object.values(statutsData),
+                backgroundColor: ['#FFCE56', '#36A2EB', '#FF6384']
+            }]
+        }
+    });
+
+    // Graphique 2
+    const prodData = JSON.parse('{{ production_mensuelle.data|escapejs }}');
+    new Chart(document.getElementById('productionChart'), {
+        type: 'bar',
+        data: {
+            labels: JSON.parse('{{ production_mensuelle.labels|escapejs }}'),
+            datasets: [{
+                label: 'Quantité terminée',
+                data: prodData,
+                backgroundColor: '#4BC0C0'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

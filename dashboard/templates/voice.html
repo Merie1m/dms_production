@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Assistant Vocal</title>
+</head>
+<body>
+    <h1>Assistant vocal - Test de reconnaissance</h1>
+
+    <button id="start-btn">Parler</button>
+    <p>Texte reconnu : <span id="result"></span></p>
+    <p id="status"></p>
+
+    <script>
+        const startBtn = document.getElementById('start-btn');
+        const resultSpan = document.getElementById('result');
+        const statusP = document.getElementById('status');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("La reconnaissance vocale n'est pas supportée par ce navigateur.");
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+
+            startBtn.addEventListener('click', () => {
+                resultSpan.textContent = '';
+                statusP.textContent = 'Écoute...';
+                startBtn.disabled = true;
+                recognition.start();
+            });
+
+            recognition.addEventListener('result', (event) => {
+                const text = event.results[0][0].transcript;
+                resultSpan.textContent = text;
+                statusP.textContent = 'Texte reconnu.';
+            });
+
+            recognition.addEventListener('error', (event) => {
+                if(event.error === 'no-speech') {
+                    statusP.textContent = 'Erreur : aucune parole détectée, veuillez réessayer.';
+                } else {
+                    statusP.textContent = 'Erreur : ' + event.error;
+                }
+                startBtn.disabled = false;
+            });
+
+            recognition.addEventListener('end', () => {
+                startBtn.disabled = false;
+                if(!resultSpan.textContent) {
+                    statusP.textContent = 'Aucun texte reconnu.';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

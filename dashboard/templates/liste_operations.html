@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Liste des opérations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des opérations de production</h2>
+    <a href="{% url 'ajouter_operation' %}" class="btn btn-primary mb-3">Ajouter une opération</a>
+    
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Code Ordre</th>
+                <th>Type d'opération</th>
+                <th>Quantité demandée</th>
+                <th>Quantité produite</th>
+                <th>% Réalisé</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for op in operations %}
+            <tr>
+                <td>{{ op.ordre_production.code_ordre }}</td>
+                <td>{{ op.get_type_operation_display }}</td>
+                <td>{{ op.quantite_demandee }}</td>
+                <td>{{ op.quantite_produite }}</td>
+                <td>{{ op.pourcentage }}%</td>
+                <td>
+                    <a href="{% url 'modifier_operation' op.id %}" class="btn btn-warning btn-sm">Modifier</a>
+              <a href="{% url 'supprimer_operation' op.id %}" 
+   class="btn btn-danger btn-sm"
+   onclick="return confirm('Voulez-vous vraiment supprimer cette opération ?');">
+   Supprimer
+</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Aucune opération trouvée</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Produits{% endblock %}
+{% block content %}
+
+
+    <h1 style="text-align:center;"> Liste des Employés</h1>
+
+    <a href="{% url 'ajouter_employe' %}" class="btn btn-success mb-3" style="margin-left:1500px;">Ajouter un employe</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in employes %}
+            <tr>
+                <td>{{ e.nom }}</td>
+                <td>{{ e.prenom }}</td>
+                <td>{{ e.get_role_display }}</td>
+                <td>
+                 
+                      <a href="{% url 'modifier_employe' e.id %}" class="btn btn-warning btn-sm me-2">Modifier</a>
+            <a href="{% url 'supprimer_employe' e.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Voulez-vous vraiment supprimer ce produit ?');">Supprimer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;">Aucun employé.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'liste_produits' %}" style="display:block; width: 150px; margin: 20px auto; text-align: center;">Retour aux produits</a>
+{% endblock %}
+

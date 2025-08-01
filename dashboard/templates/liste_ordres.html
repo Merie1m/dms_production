@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Liste des ordres de production</h2>
+
+  <a href="{% url 'ajouter_ordre' %}" class="btn btn-primary mb-3">Ajouter un nouvel ordre</a>
+
+  <table class="table table-bordered table-striped">
+    <tr>
+      <th>Code</th>
+      <th>Produit</th>
+      <th>Quantité commandée</th>
+      <th>Quantité terminée</th>
+      <th>Statut</th>
+      <th>Actions</th> <!-- Nouvelle colonne pour les boutons -->
+    </tr>
+    {% for ordre in ordres %}
+    <tr>
+      <td>{{ ordre.code_ordre }}</td>
+      <td>{{ ordre.produit.nom_produit }}</td>
+      <td>{{ ordre.quantite_commandee }}</td>
+      <td>{{ ordre.quantite_terminee }}</td>
+      <td>{{ ordre.get_statut_display }}</td>
+      <td>
+        <a href="{% url 'modifier_ordre' ordre.id %}" class="btn btn-warning btn-sm">Modifier</a>
+        <a href="{% url 'supprimer_ordre_production' ordre.id %}" 
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Confirmer la suppression ?');">
+          Supprimer
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

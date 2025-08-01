@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Prédiction Retards{% endblock %}
+
+{% block content %}
+<style>
+    #spinner {
+        text-align: center;
+        font-size: 20px;
+        margin-top: 30px;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
+
+<h1>Prédictions</h1>
+<div id="spinner">⏳ Calcul en cours...</div>
+<div id="content" class="hidden">
+    <div class="table-container">
+        <h2>Ordres en risque de retard</h2>
+        {% if resultats.retard %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Produit</th>
+                    <th>Quantité demandée</th>
+                    <th>Quantité terminée</th>
+                    <th>Date début</th>
+                    <th>Date fin prévue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ordre in resultats.retard %}
+                <tr>
+                    <td>{{ ordre.id }}</td>
+                    <td>{{ ordre.produit }}</td>
+                    <td>{{ ordre.quantite }}</td>
+                    <td>{{ ordre.quantite_terminee }}</td>
+                    <td>{{ ordre.date_debut }}</td>
+                    <td>{{ ordre.date_fin_prevue }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun ordre en retard.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Quand la page a fini de charger, on cache le spinner et on montre le tableau
+    window.addEventListener("load", function() {
+        document.getElementById("spinner").classList.add("hidden");
+        document.getElementById("content").classList.remove("hidden");
+    });
+</script>
+
+{% endblock %}

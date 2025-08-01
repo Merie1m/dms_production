@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <title>{% block title %}Dashboard{% endblock %}</title>
+
+    <!-- Feuilles de style -->
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- Librairie JS pour les graphiques -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+
+    <!-- Bouton menu -->
+    <button id="toggle-btn" style="position: fixed; top: 10px; left: 10px; z-index: 1000;">
+        &#9776;
+    </button>
+
+    <!-- Barre latérale -->
+    <div class="sidebar" id="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+
+            <li>
+                <a href="#" onclick="toggleSubmenu('produits-submenu')">Produits ▾</a>
+                <ul id="produits-submenu" style="display: none; padding-left: 15px;">
+                    <li><a href="{% url 'liste_produits' %}">Liste Produits</a></li>
+                    <li><a href="{% url 'ajouter_produit' %}">Ajouter Produit</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#" onclick="toggleSubmenu('employes-submenu')">Employés ▾</a>
+                <ul id="employes-submenu" style="display: none; padding-left: 15px;">
+                    <li><a href="{% url 'liste_employes' %}">Liste Employés</a></li>
+                    <li><a href="{% url 'ajouter_employe' %}">Ajouter employé</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#" onclick="toggleSubmenu('ordres-submenu')">Ordres de Production ▾</a>
+                <ul id="ordres-submenu" style="display: none; padding-left: 15px;">
+                    <li><a href="{% url 'liste_ordres' %}">Liste Ordres</a></li>
+                    <li><a href="{% url 'ajouter_ordre' %}">Ajouter Ordre</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#" onclick="toggleSubmenu('operations-submenu')">Opérations de Production ▾</a>
+                <ul id="operations-submenu" style="display: none; padding-left: 15px;">
+                    <li><a href="{% url 'liste_operations' %}">Liste Opérations</a></li>
+                    <li><a href="{% url 'ajouter_operation' %}">Ajouter Opération</a></li>
+                </ul>
+            </li>
+            <!-- Par exemple dans navbar.html -->
+            <li><a href="#" id="voice-command-btn">Assistant vocal - Commandes</a></li>
+
+
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
+            {% endif %}
+
+            <li><a href="/admin/">Admin</a></li>
+        </ul>
+    </div>
+
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            submenu.style.display = submenu.style.display === "none" ? "block" : "none";
+        }
+    </script>
+
+    <!-- Contenu principal -->
+    <div class="main-content" id="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Script de gestion du toggle -->
+    <script>
+        const toggleBtn = document.getElementById('toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('closed');
+            mainContent.classList.toggle('expanded');
+        });
+    </script>
+
+    <style>
+        canvas {
+            height: 300px !important;
+        }
+    </style>
+
+
+
+
+<script>
+    const voiceCommandBtn = document.getElementById('voice-command-btn');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        alert("La reconnaissance vocale n'est pas supportée par ce navigateur.");
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.interimResults = false;
+
+        voiceCommandBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert("🎙️ Dites une commande (ex: 'Aller à la page produits')");
+            recognition.start();
+        });
+
+        recognition.addEventListener('result', (event) => {
+            const command = event.results[0][0].transcript.toLowerCase();
+             alert("Texte reconnu : " + command);
+            console.log("Commande vocale détectée :", command);
+if (command.includes("produit") || command.includes("produits")) {
+    window.location.href = "/dashboard/produits/";
+} 
+else if (command.includes("ordre") || command.includes("ordres")) {
+    window.location.href = "/dashboard/ordres/";
+}
+else if (command.includes("retard")) {
+    window.location.href = "/dashboard/prediction-retard/";
+}
+else {
+    alert("❌ Commande non reconnue !");
+}
+
+        });
+
+        recognition.addEventListener('error', (event) => {
+            console.error("Erreur vocale :", event.error);
+        });
+    }
+</script>
+
+
+
+
+
+
+
+
+</body>
+</html>
