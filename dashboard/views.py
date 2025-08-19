@@ -16,8 +16,12 @@ from django.utils.timezone import make_aware
 from datetime import date
 from django.shortcuts import render
 from dashboard.models import OrdreProduction
-
+from functools import wraps
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
 #################################################################""
+
 
 def liste_produits(request):
     produits = Produit.objects.all()
@@ -50,20 +54,28 @@ def supprimer_produit(request, produit_id):
     produit.delete()
     return redirect('liste_produits')
 
-
-
-
-
-
-
-
 #############################################################################
+
+def roles_required(role):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            if role not in getattr(request.user, 'role', ''):
+                messages.error(request, "Accès refusé : vous n'avez pas la permission.")
+                return redirect('page_accueil')  # ou une page d'accueil, tableau de bord, etc.
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+@roles_required('admin')
 # Liste des employés
 def liste_employes(request):
     employes = Employe.objects.all()
     return render(request, 'liste_employes.html', {'employes': employes})
 
 # Ajouter un employé
+@roles_required('admin')
 def ajouter_employe(request):
     if request.method == 'POST':
         form = EmployeForm(request.POST)
@@ -75,6 +87,7 @@ def ajouter_employe(request):
     return render(request, 'ajouter_employe.html', {'form': form})
 
 # Modifier un employé
+@roles_required('admin')
 def modifier_employe(request, id):
     employe = get_object_or_404(Employe, id=id)
     if request.method == 'POST':
@@ -86,7 +99,7 @@ def modifier_employe(request, id):
         form = EmployeForm(instance=employe)
     return render(request, 'modifier_employe.html', {'form': form})
 
-# Supprimer un employé
+@roles_required('admin')
 def supprimer_employe(request, id):
     employe = get_object_or_404(Employe, id=id)
     if request.method == 'POST':
@@ -100,6 +113,21 @@ def liste_ordres(request):
     ordres = OrdreProduction.objects.all()
     return render(request, 'liste_ordres.html', {'ordres': ordres})
 
+
+
+def roles_required_multiple(roles):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            if request.user.role not in roles:
+                return HttpResponseForbidden("Accès refusé : rôle insuffisant.")
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+@roles_required_multiple(['admin', 'production'])
 def ajouter_ordre(request):
     if request.method == 'POST':
         form = OrdreProductionForm(request.POST)
@@ -110,7 +138,7 @@ def ajouter_ordre(request):
         form = OrdreProductionForm()
     return render(request, 'ajouter_ordre.html', {'form': form})
 
-
+@roles_required_multiple(['admin', 'production'])
 def modifier_ordre(request, id):
 
     ordre = get_object_or_404(OrdreProduction, pk=id)
@@ -123,7 +151,7 @@ def modifier_ordre(request, id):
         form = OrdreProductionForm(instance=ordre)
     return render(request, 'modifier_ordre.html', {'form': form})
 
-
+@roles_required_multiple(['admin', 'production'])
 def supprimer_ordre(request, id):
     ordre = get_object_or_404(OrdreProduction, id=id)
     ordre.delete()

@@ -4,32 +4,35 @@ from django.db import models
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('L\'email est obligatoire')
+            raise ValueError("L'email est obligatoire")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
-    
+
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Le superuser doit avoir is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Le superuser doit avoir is_superuser=True.')
-        
+        extra_fields.setdefault('role', CustomUser.Role.ADMIN)
         return self.create_user(email, password, **extra_fields)
 
 class CustomUser(AbstractUser):
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        PRODUCTION = 'production', 'Responsable Production'
+        STOCK = 'stock', 'Responsable Stock'
+        QUALITE = 'qualite', 'Contrôleur Qualité'
+        TECHNICIEN = 'technicien', 'Technicien'
+
+    username = None  # Supprime le champ username par défaut
     email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, blank=True, null=True)
-    
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.ADMIN)
+
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
-    
+    REQUIRED_FIELDS = []
+
     objects = CustomUserManager()
-    
+
     def __str__(self):
-        return self.email
+        return f"{self.email} ({self.get_role_display()})"

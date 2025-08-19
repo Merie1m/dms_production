@@ -38,7 +38,9 @@
                 <a href="#" onclick="toggleSubmenu('employes-submenu')">Employés ▾</a>
                 <ul id="employes-submenu" style="display: none; padding-left: 15px;">
                     <li><a href="{% url 'liste_employes' %}">Liste Employés</a></li>
-                    <li><a href="{% url 'ajouter_employe' %}">Ajouter employé</a></li>
+                    {% if request.user.role == 'admin' %}
+                    <li><a href="{% url 'ajouter_employe' %}">Ajouter employés</a></li> 
+                    {% endif %}
                 </ul>
             </li>
 
@@ -46,7 +48,9 @@
                 <a href="#" onclick="toggleSubmenu('ordres-submenu')">Ordres de Production ▾</a>
                 <ul id="ordres-submenu" style="display: none; padding-left: 15px;">
                     <li><a href="{% url 'liste_ordres' %}">Liste Ordres</a></li>
+                    {% if request.user.role == 'admin' or request.user.role == 'production' %}
                     <li><a href="{% url 'ajouter_ordre' %}">Ajouter Ordre</a></li>
+                    {% endif %}
                 </ul>
             </li>
 

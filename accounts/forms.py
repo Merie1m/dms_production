@@ -28,6 +28,13 @@ class CustomUserCreationForm(UserCreationForm):
             'placeholder': 'Nom'
         })
     )
+    role = forms.ChoiceField(  # NOUVEAU
+        choices=User.Role.choices,
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        }),
+        label="Rôle"
+    )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
@@ -40,19 +47,21 @@ class CustomUserCreationForm(UserCreationForm):
             'placeholder': 'Confirmer le mot de passe'
         })
     )
-    
+
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'password1', 'password2')
-    
+        fields = ('email', 'first_name', 'last_name', 'role', 'password1', 'password2')
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
+        user.role = self.cleaned_data['role']  # Enregistrer le rôle
         if commit:
             user.save()
         return user
+
 
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(

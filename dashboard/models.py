@@ -155,10 +155,19 @@ class OperationProduction(models.Model):
 
 # 6. Suivi des quantités disponibles
 class Stock(models.Model):
+    EMPLACEMENT_CHOICES = [
+        ('magasin', 'Magasin'),
+        ('entrepot', 'Entrepôt'),
+        ('expedition', 'Expédition'),
+    ]
+    
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE)
     quantite_disponible = models.PositiveIntegerField()
+    emplacement = models.CharField(
+        max_length=20, 
+        choices=EMPLACEMENT_CHOICES,
+        default='magasin'  # Valeur par défaut
+    )
 
     def __str__(self):
-        return f"{self.produit.nom_produit} - {self.quantite_disponible}"
-
-
+        return f"{self.produit.nom_produit} - {self.quantite_disponible} ({self.get_emplacement_display()})"
